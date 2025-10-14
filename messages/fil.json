@@ -1,0 +1,54 @@
+{
+  "common": {
+    "appName": "Serbisyo ng Pagbabahagi ng Manual",
+    "login": "Mag-login",
+    "logout": "Mag-logout",
+    "save": "I-save",
+    "cancel": "Kanselahin",
+    "delete": "Burahin",
+    "edit": "I-edit",
+    "create": "Lumikha",
+    "search": "Maghanap",
+    "loading": "Naglo-load...",
+    "error": "May nangyaring error"
+  },
+  "auth": {
+    "userId": "User ID",
+    "password": "Password",
+    "loginButton": "Mag-login",
+    "loginError": "Mali ang user ID o password",
+    "registerTitle": "Unang Pagpaparehistro",
+    "registerButton": "Magparehistro",
+    "passwordConfirm": "Kumpirmahin ang Password",
+    "passwordMismatch": "Hindi tugma ang password",
+    "registrationSuccess": "Matagumpay ang pagpaparehistro"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "actionRequired": "Staff na nangangailangan ng tulong",
+    "unreadManuals": "Staff na may hindi pa nabasang manual",
+    "lowScoreStaff": "Staff na hindi pumasa sa pagsusulit",
+    "shortViewDuration": "Staff na napakabilis tumingin"
+  },
+  "manual": {
+    "title": "Manual",
+    "createNew": "Lumikha ng Bagong Manual",
+    "edit": "I-edit ang Manual",
+    "view": "Tingnan ang Manual",
+    "addBlock": "Magdagdag ng Block",
+    "textBlock": "Teksto",
+    "imageBlock": "Larawan",
+    "videoBlock": "Video",
+    "aiConstruct": "Awtomatikong Gumawa gamit ang AI",
+    "translate": "Isalin",
+    "generateTest": "Lumikha ng Pagsusulit"
+  },
+  "staff": {
+    "title": "Pamamahala ng Staff",
+    "addNew": "Magdagdag ng Staff",
+    "name": "Pangalan",
+    "role": "Papel",
+    "status": "Katayuan",
+    "badges": "Mga Badge"
+  }
+}

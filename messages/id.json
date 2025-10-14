@@ -1,0 +1,54 @@
+{
+  "common": {
+    "appName": "Layanan Berbagi Manual",
+    "login": "Masuk",
+    "logout": "Keluar",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "create": "Buat",
+    "search": "Cari",
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan"
+  },
+  "auth": {
+    "userId": "ID Pengguna",
+    "password": "Kata Sandi",
+    "loginButton": "Masuk",
+    "loginError": "ID pengguna atau kata sandi salah",
+    "registerTitle": "Pendaftaran Pertama",
+    "registerButton": "Daftar",
+    "passwordConfirm": "Konfirmasi Kata Sandi",
+    "passwordMismatch": "Kata sandi tidak cocok",
+    "registrationSuccess": "Pendaftaran berhasil"
+  },
+  "dashboard": {
+    "title": "Dasbor",
+    "actionRequired": "Staf yang memerlukan bantuan",
+    "unreadManuals": "Staf dengan manual yang belum dibaca",
+    "lowScoreStaff": "Staf yang tidak lulus tes",
+    "shortViewDuration": "Staf yang melihat terlalu cepat"
+  },
+  "manual": {
+    "title": "Manual",
+    "createNew": "Buat Manual Baru",
+    "edit": "Edit Manual",
+    "view": "Lihat Manual",
+    "addBlock": "Tambah Blok",
+    "textBlock": "Teks",
+    "imageBlock": "Gambar",
+    "videoBlock": "Video",
+    "aiConstruct": "Bangun Otomatis dengan AI",
+    "translate": "Terjemahkan",
+    "generateTest": "Buat Tes"
+  },
+  "staff": {
+    "title": "Manajemen Staf",
+    "addNew": "Tambah Staf",
+    "name": "Nama",
+    "role": "Peran",
+    "status": "Status",
+    "badges": "Lencana"
+  }
+}

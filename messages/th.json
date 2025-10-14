@@ -1,0 +1,54 @@
+{
+  "common": {
+    "appName": "บริการแชร์คู่มือ",
+    "login": "เข้าสู่ระบบ",
+    "logout": "ออกจากระบบ",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "edit": "แก้ไข",
+    "create": "สร้าง",
+    "search": "ค้นหา",
+    "loading": "กำลังโหลด...",
+    "error": "เกิดข้อผิดพลาด"
+  },
+  "auth": {
+    "userId": "รหัสผู้ใช้",
+    "password": "รหัสผ่าน",
+    "loginButton": "เข้าสู่ระบบ",
+    "loginError": "รหัสผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+    "registerTitle": "ลงทะเบียนครั้งแรก",
+    "registerButton": "ลงทะเบียน",
+    "passwordConfirm": "ยืนยันรหัสผ่าน",
+    "passwordMismatch": "รหัสผ่านไม่ตรงกัน",
+    "registrationSuccess": "ลงทะเบียนสำเร็จ"
+  },
+  "dashboard": {
+    "title": "แดชบอร์ด",
+    "actionRequired": "พนักงานที่ต้องการความช่วยเหลือ",
+    "unreadManuals": "พนักงานที่มีคู่มือที่ยังไม่ได้อ่าน",
+    "lowScoreStaff": "พนักงานที่สอบไม่ผ่าน",
+    "shortViewDuration": "พนักงานที่ดูเร็วเกินไป"
+  },
+  "manual": {
+    "title": "คู่มือ",
+    "createNew": "สร้างคู่มือใหม่",
+    "edit": "แก้ไขคู่มือ",
+    "view": "ดูคู่มือ",
+    "addBlock": "เพิ่มบล็อก",
+    "textBlock": "ข้อความ",
+    "imageBlock": "รูปภาพ",
+    "videoBlock": "วิดีโอ",
+    "aiConstruct": "สร้างอัตโนมัติด้วย AI",
+    "translate": "แปล",
+    "generateTest": "สร้างแบบทดสอบ"
+  },
+  "staff": {
+    "title": "การจัดการพนักงาน",
+    "addNew": "เพิ่มพนักงาน",
+    "name": "ชื่อ",
+    "role": "บทบาท",
+    "status": "สถานะ",
+    "badges": "เหรียญ"
+  }
+}

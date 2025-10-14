@@ -1,0 +1,313 @@
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
+
+/**
+ * オンボーディングページコンテンツ
+ * スタッフの初回登録画面
+ */
+function OnboardingContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  // フォーム状態
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // エラー状態
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
+
+  // スタッフ情報（モック）
+  const [staffInfo, setStaffInfo] = useState<{
+    name: string;
+    organization: string;
+    language: string;
+  } | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  // トークン検証
+  useEffect(() => {
+    if (!token) {
+      alert("無効な招待リンクです");
+      router.push("/");
+      return;
+    }
+
+    const fetchStaffInfo = async () => {
+      try {
+        const response = await fetch(`/api/auth/verify-token?token=${token}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "トークンの検証に失敗しました");
+        }
+
+        setStaffInfo({
+          name: data.displayName,
+          organization: data.organizationName,
+          language: data.language,
+        });
+      } catch (error) {
+        console.error("Token verification error:", error);
+        setStaffInfo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStaffInfo();
+  }, [token, router]);
+
+  // バリデーション
+  const validate = (): boolean => {
+    const newErrors: typeof errors = {};
+
+    if (!email.trim()) {
+      newErrors.email = "メールアドレスを入力してください";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "有効なメールアドレスを入力してください";
+    }
+
+    if (!password) {
+      newErrors.password = "パスワードを入力してください";
+    } else if (password.length < 8) {
+      newErrors.password = "パスワードは8文字以上で入力してください";
+    }
+
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "パスワードが一致しません";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // 登録処理
+  const handleOnboard = async () => {
+    if (!validate()) return;
+
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/onboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "登録に失敗しました");
+      }
+
+      alert(
+        `登録完了！\n\n${email} に確認メールを送信しました。メールのリンクをクリックして登録を完了してください。`
+      );
+      router.push("/");
+    } catch (error) {
+      console.error("Onboarding error:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "登録中にエラーが発生しました"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4">
+        <Card padding="lg">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">読み込み中...</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!staffInfo) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4">
+        <Card padding="lg">
+          <div className="text-center py-8">
+            <span className="text-6xl mb-4 block">⚠️</span>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              無効な招待リンク
+            </h2>
+            <p className="text-gray-600 mb-6">
+              このリンクは無効または期限切れです
+            </p>
+            <Button variant="primary" onClick={() => router.push("/")}>
+              ログイン画面へ
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* ロゴ・タイトル */}
+        <div className="text-center mb-8">
+          <div className="inline-block p-4 bg-green-600 rounded-2xl mb-4 shadow-lg">
+            <span className="text-5xl">👋</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            ようこそ、{staffInfo.name}さん！
+          </h1>
+          <p className="text-gray-600">{staffInfo.organization}へようこそ</p>
+        </div>
+
+        {/* 登録カード */}
+        <Card padding="lg">
+          <div className="space-y-6">
+            {/* 説明 */}
+            <div className="bg-green-50 rounded-lg p-4">
+              <p className="text-sm text-green-800">
+                <strong>✨ 初回登録</strong>
+                <br />
+                メールアドレスとパスワードを設定して、マニュアル閲覧を開始しましょう！
+              </p>
+            </div>
+
+            {/* メールアドレス */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                メールアドレス <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors({ ...errors, email: undefined });
+                }}
+                placeholder="例: tanaka@example.com"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                  errors.email
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-green-500"
+                }`}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            {/* パスワード */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                パスワード <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password)
+                    setErrors({ ...errors, password: undefined });
+                }}
+                placeholder="8文字以上"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                  errors.password
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-green-500"
+                }`}
+              />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+              )}
+            </div>
+
+            {/* パスワード確認 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                パスワード（確認） <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (errors.confirmPassword)
+                    setErrors({ ...errors, confirmPassword: undefined });
+                }}
+                placeholder="もう一度入力してください"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
+                  errors.confirmPassword
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-green-500"
+                }`}
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
+
+            {/* 登録完了ボタン */}
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={handleOnboard}
+              disabled={submitting}
+            >
+              {submitting ? "登録中..." : "登録完了"}
+            </Button>
+
+          </div>
+        </Card>
+
+        {/* セキュリティ情報 */}
+        <div className="text-center mt-6 text-xs text-gray-500">
+          <p>🔒 すべての情報は安全に暗号化されます</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * オンボーディングページ
+ * Suspenseでラップして useSearchParams を使用
+ */
+export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">読み込み中...</p>
+          </div>
+        </div>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
+  );
+}

@@ -1,0 +1,54 @@
+{
+  "common": {
+    "appName": "Dịch vụ chia sẻ hướng dẫn",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "search": "Tìm kiếm",
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi"
+  },
+  "auth": {
+    "userId": "ID người dùng",
+    "password": "Mật khẩu",
+    "loginButton": "Đăng nhập",
+    "loginError": "ID người dùng hoặc mật khẩu không chính xác",
+    "registerTitle": "Đăng ký lần đầu",
+    "registerButton": "Đăng ký",
+    "passwordConfirm": "Xác nhận mật khẩu",
+    "passwordMismatch": "Mật khẩu không khớp",
+    "registrationSuccess": "Đăng ký thành công"
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "actionRequired": "Nhân viên cần hỗ trợ",
+    "unreadManuals": "Nhân viên có hướng dẫn chưa đọc",
+    "lowScoreStaff": "Nhân viên không đạt bài kiểm tra",
+    "shortViewDuration": "Nhân viên xem quá nhanh"
+  },
+  "manual": {
+    "title": "Hướng dẫn",
+    "createNew": "Tạo hướng dẫn mới",
+    "edit": "Chỉnh sửa hướng dẫn",
+    "view": "Xem hướng dẫn",
+    "addBlock": "Thêm khối",
+    "textBlock": "Văn bản",
+    "imageBlock": "Hình ảnh",
+    "videoBlock": "Video",
+    "aiConstruct": "Tự động tạo bằng AI",
+    "translate": "Dịch",
+    "generateTest": "Tạo bài kiểm tra"
+  },
+  "staff": {
+    "title": "Quản lý nhân viên",
+    "addNew": "Thêm nhân viên",
+    "name": "Tên",
+    "role": "Vai trò",
+    "status": "Trạng thái",
+    "badges": "Huy hiệu"
+  }
+}
