@@ -42,6 +42,11 @@ export default function QRCodeModal({ user, onClose, locale }: QRCodeModalProps)
     window.print();
   };
 
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(onboardingUrl);
+    alert("リンクをコピーしました！");
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
@@ -98,10 +103,23 @@ export default function QRCodeModal({ user, onClose, locale }: QRCodeModalProps)
           </Button>
         </div>
 
-        {/* URL表示（デバッグ用） */}
-        <div className="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600 break-all">
-          <p className="font-medium mb-1">登録URL:</p>
-          <p className="text-gray-500">{onboardingUrl}</p>
+        {/* URL表示とコピー（開発・テスト用） */}
+        <div className="mt-4">
+          <p className="text-xs font-medium text-gray-700 mb-2">💻 開発・テスト用リンク</p>
+          <div className="flex gap-2">
+            <div className="flex-1 p-3 bg-gray-50 rounded text-xs text-gray-600 break-all border border-gray-200">
+              {onboardingUrl}
+            </div>
+            <button
+              onClick={handleCopyUrl}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
+            >
+              📋 コピー
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            ※ PCでテストする場合は、このリンクをコピーしてブラウザで開いてください
+          </p>
         </div>
       </div>
     </div>

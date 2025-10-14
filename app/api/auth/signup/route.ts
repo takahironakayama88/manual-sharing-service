@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -25,16 +25,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // Admin Client（RLSバイパス）を使用
+    const supabase = createAdminClient();
 
     // 1. Supabase Authでユーザー作成
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          display_name: adminName,
-        },
+      email_confirm: true, // メール確認を自動的に完了
+      user_metadata: {
+        display_name: adminName,
       },
     });
 

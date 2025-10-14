@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -46,8 +47,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // usersテーブルからユーザー情報を取得
-    const { data: userData, error: userError } = await supabase
+    // Admin Clientを使用してusersテーブルからユーザー情報を取得（RLSバイパス）
+    const adminClient = createAdminClient();
+    const { data: userData, error: userError } = await adminClient
       .from("users")
       .select("*")
       .eq("id", authData.user.id)

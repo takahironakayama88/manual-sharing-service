@@ -89,7 +89,7 @@ export default function ManualManagementCard({ manual, locale, onDelete }: Manua
       <div className="p-4 bg-white border-t border-gray-100">
         {!showDeleteConfirm ? (
           <div className="flex gap-2">
-            <Link href={`/${locale}/staff/manuals/${manual.id}`} className="flex-1">
+            <Link href={`/${locale}/admin/manuals/${manual.id}`} className="flex-1">
               <Button variant="secondary" size="sm" fullWidth>
                 👁️ プレビュー
               </Button>

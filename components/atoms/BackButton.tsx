@@ -13,13 +13,15 @@ export default function BackButton({ label = "← 戻る", locale }: BackButtonP
   const pathname = usePathname();
 
   const handleBack = () => {
-    if (locale) {
-      // 現在の言語のスタッフページに直接遷移
-      router.push(`/${locale}/staff`);
+    const segments = pathname.split("/");
+    const currentLocale = segments[1]; // /[locale]/... の [locale] 部分
+    const role = segments[2]; // admin または staff
+
+    // 管理者画面からの場合は管理者のマニュアル一覧へ
+    if (role === "admin") {
+      router.push(`/${currentLocale}/admin/manuals`);
     } else {
-      // localeが渡されていない場合は、pathnameから抽出して遷移
-      const segments = pathname.split("/");
-      const currentLocale = segments[1]; // /[locale]/staff/manuals/[id] の [locale] 部分
+      // スタッフ画面からの場合はスタッフダッシュボードへ
       router.push(`/${currentLocale}/staff`);
     }
   };

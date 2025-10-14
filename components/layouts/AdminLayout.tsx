@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 
 interface AdminLayoutProps {
@@ -13,6 +13,18 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, currentLocale, userName }: AdminLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (response.ok) {
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const navItems = [
     { id: "dashboard", label: "ダッシュボード", shortLabel: "ホーム", icon: "📊", href: `/${currentLocale}/admin` },
@@ -46,7 +58,12 @@ export default function AdminLayout({ children, currentLocale, userName }: Admin
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">{userName}</span>
-              <button className="text-sm text-gray-600 hover:text-gray-900">ログアウト</button>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                ログアウト
+              </button>
             </div>
           </div>
         </div>
