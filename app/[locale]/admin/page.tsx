@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import AdminLayout from "@/components/layouts/AdminLayout";
-import { Card, Button } from "@/components/atoms";
+import { Card } from "@/components/atoms";
 import { getCurrentUser } from "@/lib/auth";
 import { mockManuals } from "@/lib/mock-data";
 

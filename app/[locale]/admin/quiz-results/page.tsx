@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import AdminLayout from "@/components/layouts/AdminLayout";
-import Button from "@/components/atoms/Button";
 
 interface QuizResult {
   sessionId: string;

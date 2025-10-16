@@ -15,16 +15,6 @@ interface ManualDetailPageProps {
   }>;
 }
 
-interface Translation {
-  id: string;
-  manual_id: string;
-  target_language: string;
-  translated_title: string;
-  translated_blocks: any[];
-  created_at: string;
-  updated_at: string;
-}
-
 export default function ManualDetailPage({ params }: ManualDetailPageProps) {
   const router = useRouter();
   const [locale, setLocale] = useState<"ja" | "vi" | "my" | "id" | "fil" | "km" | "th">("ja");
@@ -32,7 +22,7 @@ export default function ManualDetailPage({ params }: ManualDetailPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [manualId, setManualId] = useState<string>("");
-  const [translatedManual, setTranslatedManual] = useState<{ title: string; blocks: any[] } | null>(null);
+  const [translatedManual, setTranslatedManual] = useState<{ title: string; blocks: unknown[] } | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [showOriginal, setShowOriginal] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
