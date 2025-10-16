@@ -56,8 +56,8 @@ export default function LoginPage() {
         throw new Error(data.error || "ログインに失敗しました");
       }
 
-      // ユーザーの役割に応じてリダイレクト
-      if (data.user.role === "admin" || data.user.role === "area_manager") {
+      // ユーザーの管理者権限に応じてリダイレクト
+      if (data.user.isAdmin) {
         router.push("/ja/admin");
       } else {
         router.push("/ja/staff");

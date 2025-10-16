@@ -11,8 +11,8 @@ interface QRCodeModalProps {
 }
 
 export default function QRCodeModal({ user, onClose, locale }: QRCodeModalProps) {
-  // オンボーディング用URL（実際の環境では本番URLを使用）
-  const onboardingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/onboarding?token=${user.id}`;
+  // オンボーディング用URL（invite_tokenを使用）
+  const onboardingUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/onboarding?token=${user.invite_token || user.id}`;
 
   const handleDownload = () => {
     const svg = document.getElementById("qr-code");

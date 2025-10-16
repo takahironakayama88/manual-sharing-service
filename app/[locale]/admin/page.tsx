@@ -1,10 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import AdminLayout from "@/components/layouts/AdminLayout";
-import StaffActionCard from "@/components/molecules/StaffActionCard";
-import DashboardStaffCard from "@/components/molecules/DashboardStaffCard";
 import { Card, Button } from "@/components/atoms";
-import { getCurrentAdmin, mockStaffActions, mockManuals, mockUsers } from "@/lib/mock-data";
+import { getCurrentUser } from "@/lib/auth";
+import { mockManuals } from "@/lib/mock-data";
 
 interface AdminDashboardPageProps {
   params: Promise<{ locale: "ja" | "vi" | "my" | "id" | "fil" | "km" | "th" }>;
@@ -13,25 +13,24 @@ interface AdminDashboardPageProps {
 export default async function AdminDashboardPage({ params }: AdminDashboardPageProps) {
   const { locale } = await params;
   const t = await getTranslations("dashboard");
-  const currentUser = getCurrentAdmin();
 
-  // スタッフのみをフィルタリング
-  const allStaff = mockUsers.filter((user) => user.role === "staff");
+  // 現在のユーザーを取得
+  const currentUser = await getCurrentUser();
 
-  // 最新4名のスタッフを取得（登録日の降順）
-  const recentStaff = [...allStaff]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 4);
+  // 未ログインの場合はログインページにリダイレクト
+  if (!currentUser) {
+    redirect("/");
+  }
 
-  // 統計データ
+  // 統計データ（将来的にSupabaseから取得）
   const stats = {
-    totalStaff: allStaff.length,
+    totalStaff: 0,
     totalManuals: mockManuals.length,
-    actionRequired: mockStaffActions.length,
+    actionRequired: 0,
   };
 
   return (
-    <AdminLayout currentLocale={locale} userName={currentUser.display_name} currentPage="dashboard">
+    <AdminLayout currentLocale={locale} userName={currentUser.displayName} currentPage="dashboard">
       <div>
         {/* ページタイトル */}
         <div className="mb-6">
@@ -80,65 +79,50 @@ export default async function AdminDashboardPage({ params }: AdminDashboardPageP
           </Card>
         </div>
 
-        {/* スタッフ一覧セクション */}
+        {/* クイックアクションセクション */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">👥 スタッフ一覧</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">🚀 クイックアクション</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link href={`/${locale}/admin/staff`}>
-              <Button variant="secondary" size="sm">
-                すべて見る →
-              </Button>
+              <Card padding="lg" className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <span className="text-4xl">👥</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">スタッフ管理</h3>
+                    <p className="text-sm text-gray-600">スタッフの追加・編集・削除</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href={`/${locale}/admin/manuals`}>
+              <Card padding="lg" className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <span className="text-4xl">📚</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">マニュアル管理</h3>
+                    <p className="text-sm text-gray-600">マニュアルの追加・編集・削除</p>
+                  </div>
+                </div>
+              </Card>
             </Link>
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {recentStaff.map((staff) => (
-              <DashboardStaffCard key={staff.id} user={staff} locale={locale} />
-            ))}
+        {/* 今後の実装予定 */}
+        <Card padding="lg">
+          <div className="text-center py-12">
+            <span className="text-6xl mb-4 block">🚧</span>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">学習状況・分析機能</h3>
+            <p className="text-gray-600">
+              スタッフの学習進捗や分析データは今後実装予定です
+            </p>
           </div>
-
-          {allStaff.length === 0 && (
-            <Card padding="lg">
-              <div className="text-center py-8">
-                <span className="text-4xl mb-2 block">👥</span>
-                <p className="text-gray-600">まだスタッフが登録されていません</p>
-              </div>
-            </Card>
-          )}
-        </div>
-
-        {/* アクション一覧 */}
-        <div className="mb-4">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">⚡ 対応が必要なスタッフ</h2>
-        </div>
-
-        <div className="space-y-3">
-          {mockStaffActions.map((action, index) => (
-            <StaffActionCard
-              key={index}
-              staffId={action.staffId}
-              staffName={action.staffName}
-              actionType={action.actionType}
-              manualTitle={action.manualTitle}
-              score={action.score}
-              viewDuration={action.viewDuration}
-              daysAgo={action.daysAgo}
-              locale={locale}
-            />
-          ))}
-        </div>
-
-        {/* 空状態 */}
-        {mockStaffActions.length === 0 && (
-          <Card padding="lg">
-            <div className="text-center py-12">
-              <span className="text-6xl mb-4 block">✨</span>
-              <p className="text-gray-600 text-lg">
-                素晴らしい！全てのスタッフが順調に学習しています。
-              </p>
-            </div>
-          </Card>
-        )}
+        </Card>
       </div>
     </AdminLayout>
   );

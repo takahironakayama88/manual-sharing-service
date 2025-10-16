@@ -12,26 +12,16 @@ interface BlockEditorProps {
 
 export default function BlockEditor({ locale, initialManual }: BlockEditorProps) {
   const router = useRouter();
-  const [blocks, setBlocks] = useState<ManualBlock[]>([]);
+  const [blocks, setBlocks] = useState<ManualBlock[]>(initialManual?.blocks || []);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // マニュアルのメタデータ
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("onboarding");
-  const [language, setLanguage] = useState<"ja" | "vi" | "my" | "id" | "fil" | "km" | "th">(locale);
+  const [title, setTitle] = useState(initialManual?.title || "");
+  const [description, setDescription] = useState(initialManual?.description || "");
+  const [category, setCategory] = useState(initialManual?.category || "onboarding");
+  const [language, setLanguage] = useState<"ja" | "vi" | "my" | "id" | "fil" | "km" | "th">(initialManual?.language as typeof language || locale);
   const [errors, setErrors] = useState<{ title?: string }>({});
-
-  // 初期データの読み込み（編集モードの場合）
-  useEffect(() => {
-    if (initialManual) {
-      setTitle(initialManual.title);
-      setDescription(initialManual.description || "");
-      setCategory(initialManual.category);
-      setLanguage(initialManual.language as typeof language);
-      setBlocks(initialManual.blocks || []);
-    }
-  }, [initialManual]);
 
   // ブロックを追加
   const addBlock = (type: BlockType) => {
@@ -134,64 +124,98 @@ export default function BlockEditor({ locale, initialManual }: BlockEditorProps)
   };
 
   // 保存処理
-  const handleSave = (status: "draft" | "published") => {
+  const handleSave = async (status: "draft" | "published") => {
     if (!validate()) {
       return;
     }
 
-    // 既存のマニュアルを取得
-    const existingManuals = JSON.parse(localStorage.getItem("manuals") || "[]");
-
-    // 画像/動画ブロックをフィルタリング（Data URLを含むものは保存しない）
-    // Supabase実装時にアップロード機能を追加予定
-    const filteredBlocks = blocks.map((block) => {
-      if ((block.type === "image" || block.type === "video") &&
-          typeof block.content === "string" &&
-          block.content.startsWith("data:")) {
-        // Data URLの場合は空にする（後でSupabaseにアップロードする予定）
-        return { ...block, content: "" };
-      }
-      return block;
-    });
-
-    if (initialManual) {
-      // 編集モード: 既存のマニュアルを更新
-      const updatedManual = {
-        ...initialManual,
-        title,
-        description,
-        category,
-        language,
-        status,
-        blocks: filteredBlocks,
-        updated_at: new Date().toISOString(),
-      };
-
-      const updatedManuals = existingManuals.map((m: Manual) =>
-        m.id === initialManual.id ? updatedManual : m
-      );
-      localStorage.setItem("manuals", JSON.stringify(updatedManuals));
-    } else {
-      // 新規作成モード: 新しいマニュアルを作成
-      const newManual = {
-        id: `manual_${Date.now()}`,
-        title,
-        description,
-        category,
-        language,
-        status,
-        blocks: filteredBlocks,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        created_by: "admin_001",
-        view_count: 0,
-      };
-
-      localStorage.setItem("manuals", JSON.stringify([...existingManuals, newManual]));
+    // アップロード中は保存できない
+    if (isUploading) {
+      alert("ファイルのアップロード中です。完了までお待ちください。");
+      return;
     }
 
-    // マニュアル管理ページにリダイレクト
-    router.push(`/${language}/admin/manuals`);
+    // Data URLが残っているかチェック（localStorageエラー防止）
+    const hasDataUrl = blocks.some((block) => {
+      if (block.type === "image" || block.type === "video") {
+        const content = typeof block.content === "string" ? block.content : "";
+        return content.startsWith("data:");
+      }
+      return false;
+    });
+
+    if (hasDataUrl) {
+      alert("メディアファイルのアップロードがまだ完了していません。完了までお待ちください。");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+
+      if (initialManual) {
+        // 編集モード: 既存のマニュアルを更新
+        const response = await fetch("/api/manuals/update", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: initialManual.id,
+            title,
+            description,
+            category,
+            language,
+            status,
+            blocks,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "マニュアルの更新に失敗しました");
+        }
+
+        const data = await response.json();
+        console.log("Manual updated:", data);
+      } else {
+        // 新規作成モード: 新しいマニュアルを作成
+        const response = await fetch("/api/manuals/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            category,
+            language,
+            status,
+            blocks,
+            is_visible: true, // デフォルトで表示
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "マニュアルの作成に失敗しました");
+        }
+
+        const data = await response.json();
+        console.log("Manual created:", data);
+      }
+
+      // マニュアル管理ページにリダイレクト
+      router.push(`/${language}/admin/manuals`);
+    } catch (error) {
+      console.error("Save error:", error);
+      alert(
+        `保存に失敗しました: ${
+          error instanceof Error ? error.message : "不明なエラー"
+        }`
+      );
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -318,6 +342,7 @@ export default function BlockEditor({ locale, initialManual }: BlockEditorProps)
                   <BlockContent
                     block={block}
                     onUpdate={(content) => updateBlockContent(block.id, content)}
+                    setIsUploading={setIsUploading}
                   />
                 </div>
               </div>
@@ -388,12 +413,32 @@ export default function BlockEditor({ locale, initialManual }: BlockEditorProps)
 
       <hr className="my-6" />
 
+      {/* アップロード中の表示 */}
+      {isUploading && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+          <div className="flex items-center justify-center gap-2 text-blue-600">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <span className="font-medium">ファイルをアップロード中...</span>
+          </div>
+        </div>
+      )}
+
       {/* アクションボタン */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button variant="secondary" fullWidth onClick={() => handleSave("draft")}>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => handleSave("draft")}
+          disabled={isUploading}
+        >
           下書き保存
         </Button>
-        <Button variant="primary" fullWidth onClick={() => handleSave("published")}>
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={() => handleSave("published")}
+          disabled={isUploading}
+        >
           公開する
         </Button>
       </div>
@@ -405,20 +450,53 @@ export default function BlockEditor({ locale, initialManual }: BlockEditorProps)
 interface BlockContentProps {
   block: ManualBlock;
   onUpdate: (content: string) => void;
+  setIsUploading: (isUploading: boolean) => void;
 }
 
-function BlockContent({ block, onUpdate }: BlockContentProps) {
+function BlockContent({ block, onUpdate, setIsUploading }: BlockContentProps) {
   const content = typeof block.content === "string" ? block.content : "";
 
-  // ファイルアップロード処理
-  const handleFileUpload = (file: File) => {
-    // 本番環境ではSupabase Storageにアップロード
-    // 今はブラウザのFileReaderでプレビュー用のData URLを生成
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      onUpdate(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  // ファイルアップロード処理（Supabase Storageにアップロード）
+  const handleFileUpload = async (file: File) => {
+    try {
+      setIsUploading(true);
+
+      // まずプレビュー用にData URLを設定
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdate(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Supabase Storageにアップロード
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/media/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Upload failed");
+      }
+
+      const data = await response.json();
+      // アップロード成功後、公開URLに置き換え
+      onUpdate(data.url);
+    } catch (error) {
+      console.error("Upload error:", error);
+      // エラー時はData URLをクリア
+      onUpdate("");
+      alert(
+        `ファイルのアップロードに失敗しました: ${
+          error instanceof Error ? error.message : "不明なエラー"
+        }`
+      );
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   switch (block.type) {

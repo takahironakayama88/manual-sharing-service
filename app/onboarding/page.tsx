@@ -36,7 +36,7 @@ function OnboardingContent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // トークン検証（モックモード - localStorageから取得）
+  // トークン検証（Supabase API）
   useEffect(() => {
     if (!token) {
       alert("無効な招待リンクです");
@@ -46,26 +46,21 @@ function OnboardingContent() {
 
     const fetchStaffInfo = async () => {
       try {
-        // モック: localStorageからスタッフ情報を取得
-        const staffList = JSON.parse(localStorage.getItem("staff") || "[]");
-        const staff = staffList.find((s: any) => s.id === token);
+        const response = await fetch(`/api/auth/verify-token?token=${token}`);
+        const data = await response.json();
 
-        if (staff) {
-          setStaffInfo({
-            name: staff.display_name,
-            organization: "テスト株式会社", // モック
-            language: staff.language,
-          });
-        } else {
-          // スタッフが見つからない場合はデフォルト値
-          setStaffInfo({
-            name: "テストスタッフ",
-            organization: "テスト株式会社",
-            language: "ja",
-          });
+        if (!response.ok) {
+          throw new Error(data.error || "トークンの検証に失敗しました");
         }
+
+        setStaffInfo({
+          name: data.displayName,
+          organization: data.organizationName,
+          language: data.language,
+        });
       } catch (error) {
         console.error("Token verification error:", error);
+        alert(error instanceof Error ? error.message : "トークンの検証中にエラーが発生しました");
         setStaffInfo(null);
       } finally {
         setLoading(false);
@@ -99,37 +94,36 @@ function OnboardingContent() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // 登録処理（モックモード）
+  // 登録処理（Supabase API）
   const handleOnboard = async () => {
     if (!validate()) return;
 
     setSubmitting(true);
 
-    // モック: localStorageのスタッフ情報を更新
     try {
-      const staffList = JSON.parse(localStorage.getItem("staff") || "[]");
-      const staffIndex = staffList.findIndex((s: any) => s.id === token);
+      const response = await fetch("/api/auth/onboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          email,
+          password,
+        }),
+      });
 
-      if (staffIndex !== -1) {
-        // スタッフ情報を更新
-        staffList[staffIndex] = {
-          ...staffList[staffIndex],
-          email: email,
-          is_onboarded: true,
-          updated_at: new Date().toISOString(),
-        };
-        localStorage.setItem("staff", JSON.stringify(staffList));
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "登録に失敗しました");
       }
 
-      setTimeout(() => {
-        alert(
-          `登録完了！\n\nスタッフ: ${staffInfo?.name}\nメール: ${email}\n\nログイン画面からログインしてください。`
-        );
-        router.push("/");
-      }, 1000);
+      alert(
+        `登録完了！\n\nスタッフ: ${staffInfo?.name}\nメール: ${email}\n\nログイン画面からログインしてください。`
+      );
+      router.push("/");
     } catch (error) {
       console.error("Onboarding error:", error);
-      alert("登録中にエラーが発生しました");
+      alert(error instanceof Error ? error.message : "登録中にエラーが発生しました");
     } finally {
       setSubmitting(false);
     }

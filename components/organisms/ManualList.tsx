@@ -86,7 +86,6 @@ export default function ManualList({ manuals, locale, onDelete }: ManualListProp
         </>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <p className="text-6xl mb-4">🔍</p>
           <p className="text-lg font-medium text-gray-900 mb-2">
             {manuals.length === 0 ? "マニュアルがありません" : "該当するマニュアルが見つかりません"}
           </p>
@@ -98,7 +97,7 @@ export default function ManualList({ manuals, locale, onDelete }: ManualListProp
           {manuals.length === 0 ? (
             <Link href={`/${locale}/admin/manuals/new`}>
               <Button variant="primary" size="lg">
-                ➕ 最初のマニュアルを作成
+                最初のマニュアルを作成
               </Button>
             </Link>
           ) : (
@@ -111,7 +110,7 @@ export default function ManualList({ manuals, locale, onDelete }: ManualListProp
                 setStatusFilter("");
               }}
             >
-              🔄 フィルターをクリア
+              フィルターをクリア
             </Button>
           )}
         </div>

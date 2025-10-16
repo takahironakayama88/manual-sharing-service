@@ -42,6 +42,13 @@ export default function AdminLayout({ children, currentLocale, userName }: Admin
       icon: "👥",
       href: `/${currentLocale}/admin/staff`,
     },
+    {
+      id: "quiz-results",
+      label: "理解度テスト結果",
+      shortLabel: "テスト",
+      icon: "📝",
+      href: `/${currentLocale}/admin/quiz-results`,
+    },
   ];
 
   return (
@@ -57,10 +64,10 @@ export default function AdminLayout({ children, currentLocale, userName }: Admin
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{userName}</span>
+              <span className="text-sm text-gray-700 font-medium">{userName}</span>
               <button
                 onClick={handleLogout}
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm"
               >
                 ログアウト
               </button>

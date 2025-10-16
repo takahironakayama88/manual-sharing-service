@@ -16,21 +16,71 @@ interface StaffCardProps {
 
 export default function StaffCard({ user, locale, onShowQRCode, onDelete }: StaffCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(user.is_admin ?? false);
 
-  const handleDelete = () => {
-    // localStorageから削除
-    const savedStaff = localStorage.getItem("staff");
-    if (savedStaff) {
-      const staff = JSON.parse(savedStaff);
-      const updatedStaff = staff.filter((s: User) => s.id !== user.id);
-      localStorage.setItem("staff", JSON.stringify(updatedStaff));
+  const handleToggleAdmin = async () => {
+    const newAdminStatus = !isAdmin;
+    setIsAdmin(newAdminStatus);
+
+    try {
+      const response = await fetch(`/api/staff/update-admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          isAdmin: newAdminStatus,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "管理者権限の更新に失敗しました");
+      }
+
+      // 管理者権限を解除した場合、ページをリロード
+      // (middlewareが/ja/staffにリダイレクトする可能性があるため)
+      if (!newAdminStatus) {
+        window.location.reload();
+      } else {
+        // 親コンポーネントに通知してリロード
+        if (onDelete) {
+          onDelete();
+        }
+      }
+    } catch (error) {
+      console.error("Update admin error:", error);
+      // エラー時は元に戻す
+      setIsAdmin(!newAdminStatus);
+      alert(error instanceof Error ? error.message : "管理者権限の更新に失敗しました");
     }
+  };
 
-    setShowDeleteConfirm(false);
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`/api/staff/delete?id=${user.id}`, {
+        method: "DELETE",
+      });
 
-    // 親コンポーネントに通知してリロード
-    if (onDelete) {
-      onDelete();
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "スタッフの削除に失敗しました");
+      }
+
+      alert("スタッフを削除しました");
+      setShowDeleteConfirm(false);
+
+      // 親コンポーネントに通知してリロード
+      if (onDelete) {
+        onDelete();
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert(error instanceof Error ? error.message : "削除中にエラーが発生しました");
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -77,12 +127,32 @@ export default function StaffCard({ user, locale, onShowQRCode, onDelete }: Staf
           <Badge variant={getRoleBadgeColor(user.role)} label={getRoleLabel(user.role)} />
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-gray-600">🌐 {getLanguageLabel(user.language)}</span>
-          <span className="text-xs text-gray-400">•</span>
-          <span className="text-xs text-gray-600">
-            📅 {new Date(user.created_at).toLocaleDateString("ja-JP")}
-          </span>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-gray-600">{getLanguageLabel(user.language)}</span>
+            <span className="text-xs text-gray-400">•</span>
+            <span className="text-xs text-gray-600">
+              {new Date(user.created_at).toLocaleDateString("ja-JP")}
+            </span>
+          </div>
+
+          {/* 管理者権限トグル */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-600">管理者権限</span>
+            <button
+              onClick={handleToggleAdmin}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                isAdmin ? "bg-purple-600" : "bg-gray-300"
+              }`}
+              aria-label="管理者権限を切り替え"
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isAdmin ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -91,25 +161,30 @@ export default function StaffCard({ user, locale, onShowQRCode, onDelete }: Staf
         {!showDeleteConfirm ? (
           <div className="space-y-2">
             <div className="flex gap-2">
-              <Button variant="secondary" size="sm" fullWidth onClick={() => onShowQRCode(user)}>
-                📱 QRコード
-              </Button>
-              <Link href={`/${locale}/admin/staff/${user.id}`} className="flex-1">
-                <Button variant="secondary" size="sm" fullWidth>
-                  👁️ 詳細
-                </Button>
+              <button
+                onClick={() => onShowQRCode(user)}
+                className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                QRコード
+              </button>
+              <Link
+                href={`/${locale}/admin/staff/${user.id}`}
+                className="flex-1 px-3 py-2 text-sm font-medium text-center text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                詳細
               </Link>
-              <Link href={`/${locale}/admin/staff/edit/${user.id}`} className="flex-1">
-                <Button variant="primary" size="sm" fullWidth>
-                  ✏️ 編集
-                </Button>
+              <Link
+                href={`/${locale}/admin/staff/edit/${user.id}`}
+                className="flex-1 px-3 py-2 text-sm font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                編集
               </Link>
             </div>
             <button
               onClick={() => setShowDeleteConfirm(true)}
               className="w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
-              🗑️ 削除
+              削除
             </button>
           </div>
         ) : (

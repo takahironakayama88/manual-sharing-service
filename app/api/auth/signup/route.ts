@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     const userId = `admin_${Date.now().toString().slice(-6)}`;
 
     const { error: userError } = await supabase.from("users").insert({
-      id: authData.user.id,
+      auth_id: authData.user.id, // Supabase Auth IDを設定
       user_id: userId,
       email: email,
       role: "admin",

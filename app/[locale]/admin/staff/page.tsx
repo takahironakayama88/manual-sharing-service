@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import Button from "@/components/atoms/Button";
-import { mockUsers } from "@/lib/mock-data";
 import StaffList from "@/components/organisms/StaffList";
 import { User } from "@/types/database";
 
@@ -17,18 +16,25 @@ interface PageProps {
 export default function StaffManagementPage({ params }: PageProps) {
   const [locale, setLocale] = useState<"ja" | "vi" | "my" | "id" | "fil" | "km" | "th">("ja");
   const [staffUsers, setStaffUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const loadStaff = () => {
-    // mockUsersからスタッフのみをフィルタリング
-    const mockStaff = mockUsers.filter((user) => user.role === "staff");
+  const loadStaff = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/staff/list");
+      const data = await response.json();
 
-    // localStorageからスタッフを取得
-    const savedStaff = localStorage.getItem("staff");
-    if (savedStaff) {
-      const parsedStaff = JSON.parse(savedStaff);
-      setStaffUsers([...mockStaff, ...parsedStaff]);
-    } else {
-      setStaffUsers(mockStaff);
+      if (!response.ok) {
+        throw new Error(data.error || "スタッフ一覧の取得に失敗しました");
+      }
+
+      setStaffUsers(data.staff || []);
+    } catch (error) {
+      console.error("Staff fetch error:", error);
+      alert(error instanceof Error ? error.message : "スタッフ一覧の取得中にエラーが発生しました");
+      setStaffUsers([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,8 +65,16 @@ export default function StaffManagementPage({ params }: PageProps) {
           </Link>
         </div>
 
-        {/* スタッフ一覧（フィルター・検索・統計を含む） */}
-        <StaffList users={staffUsers} locale={locale} onDelete={handleDelete} />
+        {/* ローディング状態 */}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="ml-4 text-gray-600">スタッフを読み込んでいます...</p>
+          </div>
+        ) : (
+          /* スタッフ一覧（フィルター・検索・統計を含む） */
+          <StaffList users={staffUsers} locale={locale} onDelete={handleDelete} />
+        )}
       </div>
     </AdminLayout>
   );

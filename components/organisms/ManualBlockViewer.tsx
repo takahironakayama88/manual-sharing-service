@@ -114,7 +114,11 @@ export default function ManualBlockViewer({ blocks }: ManualBlockViewerProps) {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
-      {blocks.map((block) => renderBlock(block))}
+      {blocks.map((block, index) => (
+        <div key={block.id || `block-${index}`}>
+          {renderBlock(block)}
+        </div>
+      ))}
     </div>
   );
 }

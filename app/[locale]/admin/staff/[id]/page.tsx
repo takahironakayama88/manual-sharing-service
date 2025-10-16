@@ -6,7 +6,6 @@ import Link from "next/link";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
-import { mockUsers } from "@/lib/mock-data";
 import { User } from "@/types/database";
 
 interface StaffDetailPageProps {
@@ -23,27 +22,31 @@ export default function StaffDetailPage({ params }: StaffDetailPageProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    params.then((p) => {
+    params.then(async (p) => {
       setLocale(p.locale);
 
-      // mockUsersからスタッフのみを取得
-      const mockStaff = mockUsers.filter((user) => user.role === "staff");
+      // Supabaseからスタッフを取得
+      try {
+        const response = await fetch(`/api/staff/list`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch staff");
+        }
 
-      // localStorageからスタッフを取得
-      const savedStaff = localStorage.getItem("staff");
-      let allStaff = [...mockStaff];
-      if (savedStaff) {
-        allStaff = [...mockStaff, ...JSON.parse(savedStaff)];
-      }
+        const data = await response.json();
+        const foundStaff = data.staff.find((s: User) => s.id === p.id);
 
-      const foundStaff = allStaff.find((s) => s.id === p.id);
-      if (!foundStaff) {
+        if (!foundStaff) {
+          router.push(`/${p.locale}/admin/staff`);
+          return;
+        }
+
+        setStaff(foundStaff);
+      } catch (error) {
+        console.error("Error fetching staff:", error);
         router.push(`/${p.locale}/admin/staff`);
-        return;
+      } finally {
+        setLoading(false);
       }
-
-      setStaff(foundStaff);
-      setLoading(false);
     });
   }, [params, router]);
 

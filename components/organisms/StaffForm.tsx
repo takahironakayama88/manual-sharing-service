@@ -42,18 +42,21 @@ export default function StaffForm({ locale, initialStaff }: StaffFormProps) {
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
 
-    if (!userId.trim()) {
-      newErrors.userId = "ユーザーIDは必須です";
+    // 新規作成時はユーザーIDとメールは不要（自動生成・オンボーディング時設定）
+    if (initialStaff) {
+      if (!userId.trim()) {
+        newErrors.userId = "ユーザーIDは必須です";
+      }
+
+      if (!email.trim()) {
+        newErrors.email = "メールアドレスは必須です";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        newErrors.email = "有効なメールアドレスを入力してください";
+      }
     }
 
     if (!displayName.trim()) {
       newErrors.displayName = "表示名は必須です";
-    }
-
-    if (!email.trim()) {
-      newErrors.email = "メールアドレスは必須です";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "有効なメールアドレスを入力してください";
     }
 
     setErrors(newErrors);
@@ -61,82 +64,113 @@ export default function StaffForm({ locale, initialStaff }: StaffFormProps) {
   };
 
   // 保存処理
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) {
       return;
     }
 
-    // 既存のスタッフを取得
-    const existingStaff = JSON.parse(localStorage.getItem("staff") || "[]");
+    try {
+      if (initialStaff) {
+        // 編集モード: Supabase APIで更新
+        const response = await fetch("/api/staff/update", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: initialStaff.id,
+            displayName,
+            email,
+            language,
+            role,
+          }),
+        });
 
-    if (initialStaff) {
-      // 編集モード: 既存のスタッフを更新
-      const updatedStaff = {
-        ...initialStaff,
-        user_id: userId,
-        display_name: displayName,
-        email,
-        language,
-        role,
-        updated_at: new Date().toISOString(),
-      };
+        const data = await response.json();
 
-      const updatedStaffList = existingStaff.map((s: User) =>
-        s.id === initialStaff.id ? updatedStaff : s
+        if (!response.ok) {
+          throw new Error(data.error || "スタッフ情報の更新に失敗しました");
+        }
+
+        alert("スタッフ情報を更新しました");
+        router.push(`/${locale}/admin/staff`);
+      } else {
+        // 新規作成モード: Supabase APIを呼び出し
+        const response = await fetch("/api/staff/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName,
+            language,
+            role,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "スタッフの作成に失敗しました");
+        }
+
+        alert("スタッフを作成しました！招待リンクを生成できます。");
+        router.push(`/${locale}/admin/staff`);
+      }
+    } catch (error) {
+      console.error("Staff save error:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "スタッフ情報の保存中にエラーが発生しました"
       );
-      localStorage.setItem("staff", JSON.stringify(updatedStaffList));
-    } else {
-      // 新規作成モード: 新しいスタッフを作成
-      const newStaff: User = {
-        id: `staff_${Date.now()}`,
-        user_id: userId,
-        display_name: displayName,
-        email,
-        language,
-        role,
-        organization_id: "org_001",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      localStorage.setItem("staff", JSON.stringify([...existingStaff, newStaff]));
     }
-
-    // スタッフ管理ページにリダイレクト
-    router.push(`/${locale}/admin/staff`);
   };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
-      {/* ユーザーID入力 */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          ユーザーID <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={userId}
-          onChange={(e) => {
-            setUserId(e.target.value);
-            if (errors.userId) setErrors({ ...errors, userId: undefined });
-          }}
-          placeholder="例: staff_001"
-          disabled={!!initialStaff} // 編集時はユーザーIDを変更不可
-          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
-            initialStaff ? "bg-gray-100 cursor-not-allowed" : ""
-          } ${
-            errors.userId
-              ? "border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:ring-blue-500"
-          }`}
-        />
-        {errors.userId && <p className="text-red-500 text-sm mt-1">{errors.userId}</p>}
-        {initialStaff && (
-          <p className="text-xs text-gray-500 mt-1">
-            ※ ユーザーIDは変更できません
+      {/* 新規作成時の説明 */}
+      {!initialStaff && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>📌 スタッフ登録の流れ</strong>
+            <br />
+            1. 表示名と言語を設定
+            <br />
+            2. 招待リンク（QRコード）を生成
+            <br />
+            3. スタッフがQRコードをスキャンしてメール・パスワード設定
           </p>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ユーザーID入力（編集時のみ表示） */}
+      {initialStaff && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            ユーザーID <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={userId}
+            onChange={(e) => {
+              setUserId(e.target.value);
+              if (errors.userId) setErrors({ ...errors, userId: undefined });
+            }}
+            placeholder="例: staff_001"
+            disabled={!!initialStaff} // 編集時はユーザーIDを変更不可
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
+              initialStaff ? "bg-gray-100 cursor-not-allowed" : ""
+            } ${
+              errors.userId
+                ? "border-red-500 focus:ring-red-500"
+                : "border-gray-300 focus:ring-blue-500"
+            }`}
+          />
+          {errors.userId && <p className="text-red-500 text-sm mt-1">{errors.userId}</p>}
+          {initialStaff && (
+            <p className="text-xs text-gray-500 mt-1">
+              ※ ユーザーIDは変更できません
+            </p>
+          )}
+        </div>
+      )}
 
       {/* 表示名入力 */}
       <div>
@@ -162,27 +196,29 @@ export default function StaffForm({ locale, initialStaff }: StaffFormProps) {
         )}
       </div>
 
-      {/* メールアドレス入力 */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          メールアドレス <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (errors.email) setErrors({ ...errors, email: undefined });
-          }}
-          placeholder="例: tanaka@example.com"
-          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
-            errors.email
-              ? "border-red-500 focus:ring-red-500"
-              : "border-gray-300 focus:ring-blue-500"
-          }`}
-        />
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-      </div>
+      {/* メールアドレス入力（編集時のみ表示） */}
+      {initialStaff && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            メールアドレス <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors({ ...errors, email: undefined });
+            }}
+            placeholder="例: tanaka@example.com"
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${
+              errors.email
+                ? "border-red-500 focus:ring-red-500"
+                : "border-gray-300 focus:ring-blue-500"
+            }`}
+          />
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+        </div>
+      )}
 
       {/* 言語と権限選択 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

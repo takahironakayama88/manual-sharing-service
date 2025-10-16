@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -24,10 +24,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // Admin Client を使用してRLSをバイパス
+    const adminClient = createAdminClient();
 
     // トークンでユーザー情報を取得
-    const { data: userData, error: userError } = await supabase
+    const { data: userData, error: userError } = await adminClient
       .from("users")
       .select("*")
       .eq("invite_token", token)
@@ -59,15 +60,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Supabase Authでユーザー作成
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Supabase Authでユーザー作成（Admin APIを使用）
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          display_name: userData.display_name,
-          user_id: userData.user_id,
-        },
+      email_confirm: true, // メール確認を自動的に完了
+      user_metadata: {
+        display_name: userData.display_name,
+        user_id: userData.user_id,
       },
     });
 
@@ -87,10 +87,10 @@ export async function POST(request: NextRequest) {
     }
 
     // usersテーブルを更新
-    const { error: updateError } = await supabase
+    const { error: updateError } = await adminClient
       .from("users")
       .update({
-        id: authData.user.id,
+        auth_id: authData.user.id, // Auth IDを設定
         email: email,
         is_onboarded: true,
         invite_token: null, // トークンを無効化

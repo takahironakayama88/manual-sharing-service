@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const { data: userData, error: userError } = await adminClient
       .from("users")
       .select("*")
-      .eq("id", authData.user.id)
+      .eq("auth_id", authData.user.id)
       .single();
 
     if (userError || !userData) {
@@ -63,17 +63,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    // レスポンスを作成して、ユーザーの言語設定でCookieを設定
+    const response = NextResponse.json({
       success: true,
       message: "ログインしました",
       user: {
         id: userData.id,
         email: userData.email,
         role: userData.role,
+        isAdmin: userData.is_admin ?? false,
         displayName: userData.display_name,
         organizationId: userData.organization_id,
       },
     });
+
+    // ユーザーの言語設定をCookieに保存
+    response.cookies.set("NEXT_LOCALE", userData.language, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365, // 1年
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

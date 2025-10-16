@@ -19,6 +19,7 @@ export interface User {
   display_name: string;
   language: Language;
   organization_id: string;
+  is_admin: boolean; // 管理者権限フラグ
   invite_token?: string; // 招待トークン（オンボーディング前）
   invite_expires_at?: string; // 招待トークン有効期限
   is_onboarded?: boolean; // オンボーディング完了フラグ
@@ -67,6 +68,7 @@ export interface Manual {
   blocks: ManualBlock[];
   category: "onboarding" | "operations" | "safety" | "customer_service";
   status: "published" | "draft";
+  is_visible: boolean; // スタッフ画面での表示/非表示
   language: Language;
   parent_manual_id: string | null;
   created_by: string;

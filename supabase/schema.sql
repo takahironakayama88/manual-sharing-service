@@ -8,7 +8,8 @@ CREATE TABLE organizations (
 
 -- ===== Users (ユーザー) =====
 CREATE TABLE users (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  auth_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE, -- Supabase Auth ID（オンボーディング後に設定）
   user_id TEXT NOT NULL UNIQUE, -- 例: staff_001234
   email TEXT, -- メールアドレス（オンボーディング後に設定）
   role TEXT NOT NULL CHECK (role IN ('admin', 'area_manager', 'staff')),
@@ -122,7 +123,7 @@ CREATE POLICY "Users can view their own organization"
   ON organizations FOR SELECT
   USING (
     id IN (
-      SELECT organization_id FROM users WHERE id = auth.uid()
+      SELECT organization_id FROM users WHERE auth_id = auth.uid()
     )
   );
 
@@ -131,7 +132,7 @@ CREATE POLICY "Users can view users in their organization"
   ON users FOR SELECT
   USING (
     organization_id IN (
-      SELECT organization_id FROM users WHERE id = auth.uid()
+      SELECT organization_id FROM users WHERE auth_id = auth.uid()
     )
   );
 
@@ -141,8 +142,8 @@ CREATE POLICY "Admins can insert users"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM users
-      WHERE id = auth.uid()
-      AND role = 'admin'
+      WHERE auth_id = auth.uid()
+      AND role IN ('admin', 'area_manager')
       AND organization_id = users.organization_id
     )
   );
@@ -151,11 +152,11 @@ CREATE POLICY "Admins can insert users"
 CREATE POLICY "Admins can update users or users can update themselves"
   ON users FOR UPDATE
   USING (
-    id = auth.uid()
+    auth_id = auth.uid()
     OR EXISTS (
       SELECT 1 FROM users
-      WHERE id = auth.uid()
-      AND role = 'admin'
+      WHERE auth_id = auth.uid()
+      AND role IN ('admin', 'area_manager')
       AND organization_id = users.organization_id
     )
   );
@@ -165,7 +166,7 @@ CREATE POLICY "Users can view manuals in their organization"
   ON manuals FOR SELECT
   USING (
     organization_id IN (
-      SELECT organization_id FROM users WHERE id = auth.uid()
+      SELECT organization_id FROM users WHERE auth_id = auth.uid()
     )
   );
 
@@ -175,7 +176,7 @@ CREATE POLICY "Admins and area managers can insert manuals"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM users
-      WHERE id = auth.uid()
+      WHERE auth_id = auth.uid()
       AND role IN ('admin', 'area_manager')
       AND organization_id = manuals.organization_id
     )
@@ -187,7 +188,7 @@ CREATE POLICY "Admins and area managers can update manuals"
   USING (
     EXISTS (
       SELECT 1 FROM users
-      WHERE id = auth.uid()
+      WHERE auth_id = auth.uid()
       AND role IN ('admin', 'area_manager')
       AND organization_id = manuals.organization_id
     )
@@ -196,7 +197,11 @@ CREATE POLICY "Admins and area managers can update manuals"
 -- Manual Views: 自分の閲覧履歴のみ作成可能
 CREATE POLICY "Users can insert their own manual views"
   ON manual_views FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM users WHERE auth_id = auth.uid()
+    )
+  );
 
 -- Manual Views: 同じ組織の閲覧履歴のみ閲覧可能
 CREATE POLICY "Users can view manual views in their organization"
@@ -205,7 +210,7 @@ CREATE POLICY "Users can view manual views in their organization"
     user_id IN (
       SELECT id FROM users
       WHERE organization_id IN (
-        SELECT organization_id FROM users WHERE id = auth.uid()
+        SELECT organization_id FROM users WHERE auth_id = auth.uid()
       )
     )
   );
@@ -213,7 +218,11 @@ CREATE POLICY "Users can view manual views in their organization"
 -- Test Results: 自分のテスト結果のみ作成可能
 CREATE POLICY "Users can insert their own test results"
   ON test_results FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM users WHERE auth_id = auth.uid()
+    )
+  );
 
 -- Test Results: 同じ組織のテスト結果のみ閲覧可能
 CREATE POLICY "Users can view test results in their organization"
@@ -222,7 +231,7 @@ CREATE POLICY "Users can view test results in their organization"
     user_id IN (
       SELECT id FROM users
       WHERE organization_id IN (
-        SELECT organization_id FROM users WHERE id = auth.uid()
+        SELECT organization_id FROM users WHERE auth_id = auth.uid()
       )
     )
   );
@@ -235,7 +244,11 @@ CREATE POLICY "All users can view badges"
 -- User Badges: 自分のバッジのみ作成可能
 CREATE POLICY "Users can insert their own badges"
   ON user_badges FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (
+    user_id IN (
+      SELECT id FROM users WHERE auth_id = auth.uid()
+    )
+  );
 
 -- User Badges: 同じ組織のユーザーバッジのみ閲覧可能
 CREATE POLICY "Users can view user badges in their organization"
@@ -244,7 +257,7 @@ CREATE POLICY "Users can view user badges in their organization"
     user_id IN (
       SELECT id FROM users
       WHERE organization_id IN (
-        SELECT organization_id FROM users WHERE id = auth.uid()
+        SELECT organization_id FROM users WHERE auth_id = auth.uid()
       )
     )
   );
