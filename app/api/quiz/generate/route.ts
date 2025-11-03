@@ -91,17 +91,26 @@ export async function POST(request: NextRequest) {
     }
 
     // マニュアルのブロックからテキストコンテンツを抽出
+    console.log("Manual blocks:", JSON.stringify(manualBlocks, null, 2));
     const textContent = extractTextFromBlocks(manualBlocks);
+    console.log("Extracted text content length:", textContent?.length || 0);
+    console.log("Extracted text content preview:", textContent?.substring(0, 200));
 
     if (!textContent || textContent.length < 50) {
+      console.error("Insufficient text content. Length:", textContent?.length || 0);
       return NextResponse.json(
-        { error: "マニュアルのテキストが不足しています" },
+        {
+          error: "マニュアルのテキストが不足しています",
+          details: `抽出されたテキスト: ${textContent?.length || 0}文字（最低50文字必要）`
+        },
         { status: 400 }
       );
     }
 
     // Claude APIで問題を生成
+    console.log("Creating Anthropic client...");
     const anthropic = createAnthropicClient();
+    console.log("Anthropic client created successfully");
 
     // 翻訳版の場合は、その言語で問題を生成
     const promptLanguageInstruction =
@@ -109,8 +118,9 @@ export async function POST(request: NextRequest) {
         ? `\n\n重要: 問題文、選択肢、解説は全て${questionLanguage}で作成してください。`
         : "";
 
+    console.log("Calling Claude API...");
     const message = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 2048,
       messages: [
         {
@@ -142,21 +152,27 @@ JSONフォーマットで回答してください:
         },
       ],
     });
+    console.log("Claude API response received");
 
     // Claude APIのレスポンスを解析
     const content = message.content[0];
+    console.log("Response content type:", content.type);
     if (content.type !== "text") {
       throw new Error("Unexpected response type from Claude API");
     }
 
     // JSONを抽出（```json ブロックの中にある場合も対応）
     let jsonText = content.text.trim();
+    console.log("Raw response text:", jsonText.substring(0, 500));
     const jsonMatch = jsonText.match(/```json\s*\n([\s\S]*?)\n```/);
     if (jsonMatch) {
       jsonText = jsonMatch[1];
+      console.log("Extracted JSON from code block");
     }
 
+    console.log("Parsing JSON...");
     const quizData = JSON.parse(jsonText);
+    console.log("Quiz data parsed successfully. Questions count:", quizData.questions?.length || 0);
 
     // クイズセッションをDBに保存
     const { data: session, error: sessionError } = await adminClient
@@ -219,6 +235,19 @@ JSONフォーマットで回答してください:
     });
   } catch (error) {
     console.error("Quiz generation error:", error);
+
+    // エラーの詳細情報をログ出力
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+
+    // Anthropic APIエラーの場合
+    if (error && typeof error === 'object' && 'status' in error) {
+      console.error("API Status:", (error as any).status);
+      console.error("API Error:", (error as any).error);
+    }
+
     return NextResponse.json(
       {
         error: "テスト生成中にエラーが発生しました",

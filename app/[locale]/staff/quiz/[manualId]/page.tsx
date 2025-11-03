@@ -87,7 +87,11 @@ export default function QuizPage({ params }: QuizPageProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "テストの生成に失敗しました");
+        console.error("Quiz generation failed:", errorData);
+        const errorMessage = errorData.details
+          ? `${errorData.error}\n詳細: ${errorData.details}`
+          : errorData.error || "テストの生成に失敗しました";
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
