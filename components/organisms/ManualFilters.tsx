@@ -6,16 +6,21 @@ interface ManualFiltersProps {
   onSearchChange: (search: string) => void;
   onCategoryChange: (category: string) => void;
   onStatusChange: (status: string) => void;
+  onDepartmentChange: (department: string) => void;
+  availableDepartments: string[];
 }
 
 export default function ManualFilters({
   onSearchChange,
   onCategoryChange,
   onStatusChange,
+  onDepartmentChange,
+  availableDepartments,
 }: ManualFiltersProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("");
+  const [department, setDepartment] = useState("");
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -30,6 +35,11 @@ export default function ManualFilters({
   const handleStatusChange = (value: string) => {
     setStatus(value);
     onStatusChange(value);
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    setDepartment(value);
+    onDepartmentChange(value);
   };
 
   return (
@@ -69,10 +79,26 @@ export default function ManualFilters({
           <option value="published">公開中</option>
           <option value="draft">下書き</option>
         </select>
+
+        {/* 部署フィルター */}
+        {availableDepartments.length > 0 && (
+          <select
+            value={department}
+            onChange={(e) => handleDepartmentChange(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          >
+            <option value="">すべての部署</option>
+            {availableDepartments.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* アクティブフィルター表示 */}
-      {(search || category || status) && (
+      {(search || category || status || department) && (
         <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
           <span className="text-sm text-gray-600">フィルター中:</span>
           {search && (
@@ -108,11 +134,23 @@ export default function ManualFilters({
               </button>
             </span>
           )}
+          {department && (
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 text-xs rounded-md">
+              部署: {department}
+              <button
+                onClick={() => handleDepartmentChange("")}
+                className="hover:text-orange-900"
+              >
+                ✕
+              </button>
+            </span>
+          )}
           <button
             onClick={() => {
               handleSearchChange("");
               handleCategoryChange("");
               handleStatusChange("");
+              handleDepartmentChange("");
             }}
             className="text-xs text-gray-600 hover:text-gray-900 underline ml-auto"
           >

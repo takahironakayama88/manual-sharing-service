@@ -73,6 +73,7 @@ export interface Manual {
   parent_manual_id: string | null;
   created_by: string;
   view_count?: number;
+  department_tags?: string[]; // 対象部署タグ（例: ["営業部", "製造部"]）。空配列の場合は全部署対象
   created_at: string;
   updated_at: string;
 }

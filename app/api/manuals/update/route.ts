@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, title, description, category, language, status, blocks, is_visible } = body;
+    const { id, title, description, category, language, status, blocks, is_visible, department_tags } = body;
 
     // バリデーション
     if (!id) {
@@ -77,6 +77,7 @@ export async function PUT(request: NextRequest) {
     if (status !== undefined) updateData.status = status;
     if (blocks !== undefined) updateData.blocks = blocks;
     if (is_visible !== undefined) updateData.is_visible = is_visible;
+    if (department_tags !== undefined) updateData.department_tags = department_tags;
 
     // マニュアルを更新
     const { data: manual, error: updateError } = await adminClient

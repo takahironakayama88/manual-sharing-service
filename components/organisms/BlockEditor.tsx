@@ -21,7 +21,25 @@ export default function BlockEditor({ locale, initialManual }: BlockEditorProps)
   const [description, setDescription] = useState(initialManual?.description || "");
   const [category, setCategory] = useState(initialManual?.category || "onboarding");
   const [language, setLanguage] = useState<"ja" | "vi" | "my" | "id" | "fil" | "km" | "th">(initialManual?.language as typeof language || locale);
+  const [departmentTags, setDepartmentTags] = useState<string[]>(initialManual?.department_tags || []);
+  const [newDepartmentTag, setNewDepartmentTag] = useState("");
   const [errors, setErrors] = useState<{ title?: string }>({});
+
+  // よく使われる部署名の候補
+  const commonDepartments = [
+    "営業部",
+    "製造部",
+    "総務部",
+    "人事部",
+    "経理部",
+    "企画部",
+    "開発部",
+    "マーケティング部",
+    "カスタマーサポート部",
+    "物流部",
+    "品質管理部",
+    "IT部"
+  ];
 
   // ブロックを追加
   const addBlock = (type: BlockType) => {
@@ -167,6 +185,7 @@ export default function BlockEditor({ locale, initialManual }: BlockEditorProps)
             language,
             status,
             blocks,
+            department_tags: departmentTags,
           }),
         });
 
@@ -192,6 +211,7 @@ export default function BlockEditor({ locale, initialManual }: BlockEditorProps)
             status,
             blocks,
             is_visible: true, // デフォルトで表示
+            department_tags: departmentTags,
           }),
         });
 
@@ -292,6 +312,88 @@ export default function BlockEditor({ locale, initialManual }: BlockEditorProps)
             <option value="km">カンボジア語</option>
             <option value="th">タイ語</option>
           </select>
+        </div>
+      </div>
+
+      {/* 部署タグ選択 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          対象部署（任意）
+        </label>
+        <p className="text-xs text-gray-500 mb-3">
+          特定の部署のみに表示したい場合は選択してください。未選択の場合は全部署に表示されます。
+        </p>
+
+        {/* 選択された部署タグ */}
+        {departmentTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {departmentTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => setDepartmentTags(departmentTags.filter((t) => t !== tag))}
+                  className="hover:text-blue-900 transition-colors"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* よく使われる部署から選択 */}
+        <div className="mb-3">
+          <p className="text-xs text-gray-600 mb-2">よく使われる部署:</p>
+          <div className="flex flex-wrap gap-2">
+            {commonDepartments
+              .filter((dept) => !departmentTags.includes(dept))
+              .map((dept) => (
+                <button
+                  key={dept}
+                  type="button"
+                  onClick={() => setDepartmentTags([...departmentTags, dept])}
+                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm transition-colors"
+                >
+                  + {dept}
+                </button>
+              ))}
+          </div>
+        </div>
+
+        {/* カスタム部署タグ追加 */}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newDepartmentTag}
+            onChange={(e) => setNewDepartmentTag(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (newDepartmentTag.trim() && !departmentTags.includes(newDepartmentTag.trim())) {
+                  setDepartmentTags([...departmentTags, newDepartmentTag.trim()]);
+                  setNewDepartmentTag("");
+                }
+              }
+            }}
+            placeholder="カスタム部署名を入力..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (newDepartmentTag.trim() && !departmentTags.includes(newDepartmentTag.trim())) {
+                setDepartmentTags([...departmentTags, newDepartmentTag.trim()]);
+                setNewDepartmentTag("");
+              }
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            追加
+          </button>
         </div>
       </div>
 

@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, category, language, status, blocks, is_visible } = body;
+    const { title, description, category, language, status, blocks, is_visible, department_tags } = body;
 
     // バリデーション
     if (!title || !category || !language || !status || !blocks) {
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
         status,
         blocks,
         is_visible: is_visible ?? true,
+        department_tags: department_tags || [],
         organization_id: userData.organization_id,
         created_by: userData.id,
       })

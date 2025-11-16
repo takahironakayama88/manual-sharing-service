@@ -17,6 +17,16 @@ export default function ManualList({ manuals, locale, onDelete }: ManualListProp
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+
+  // すべてのマニュアルから部署タグを抽出してユニークなリストを作成
+  const availableDepartments = useMemo(() => {
+    const allDepts = new Set<string>();
+    manuals.forEach((manual) => {
+      manual.department_tags?.forEach((tag) => allDepts.add(tag));
+    });
+    return Array.from(allDepts).sort();
+  }, [manuals]);
 
   // フィルタリングされたマニュアル
   const filteredManuals = useMemo(() => {
@@ -33,9 +43,17 @@ export default function ManualList({ manuals, locale, onDelete }: ManualListProp
       // ステータスでフィルタリング
       const matchesStatus = !statusFilter || manual.status === statusFilter;
 
-      return matchesSearch && matchesCategory && matchesStatus;
+      // 部署でフィルタリング
+      // 部署タグが空または未設定の場合は「全部署対象」として扱う
+      const matchesDepartment =
+        !departmentFilter ||
+        !manual.department_tags ||
+        manual.department_tags.length === 0 ||
+        manual.department_tags.includes(departmentFilter);
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesDepartment;
     });
-  }, [manuals, searchQuery, categoryFilter, statusFilter]);
+  }, [manuals, searchQuery, categoryFilter, statusFilter, departmentFilter]);
 
   return (
     <div className="space-y-6">
@@ -44,6 +62,8 @@ export default function ManualList({ manuals, locale, onDelete }: ManualListProp
         onSearchChange={setSearchQuery}
         onCategoryChange={setCategoryFilter}
         onStatusChange={setStatusFilter}
+        onDepartmentChange={setDepartmentFilter}
+        availableDepartments={availableDepartments}
       />
 
       {/* マニュアル統計 */}
@@ -108,6 +128,7 @@ export default function ManualList({ manuals, locale, onDelete }: ManualListProp
                 setSearchQuery("");
                 setCategoryFilter("");
                 setStatusFilter("");
+                setDepartmentFilter("");
               }}
             >
               フィルターをクリア
