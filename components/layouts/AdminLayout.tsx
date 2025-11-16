@@ -61,7 +61,7 @@ export default function AdminLayout({ children, currentLocale, userName }: Admin
               <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 rounded-xl border border-blue-100">
                 <img src="/logo.png" alt="Smuuuz" className="h-7 w-auto" />
                 <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Smuuuz
+                  業務マニュアル
                 </span>
               </div>
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
