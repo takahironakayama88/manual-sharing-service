@@ -47,6 +47,30 @@ export async function GET(request: NextRequest) {
     const manualId = searchParams.get("manualId");
     const userId = searchParams.get("userId");
 
+    // まず組織内のユーザーIDを取得
+    const { data: orgUsers, error: orgUsersError } = await adminClient
+      .from("users")
+      .select("id")
+      .eq("organization_id", userData.organization_id);
+
+    if (orgUsersError) {
+      console.error("Organization users fetch error:", orgUsersError);
+      return NextResponse.json(
+        { error: "組織ユーザーの取得に失敗しました" },
+        { status: 500 }
+      );
+    }
+
+    const orgUserIds = orgUsers?.map(u => u.id) || [];
+
+    if (orgUserIds.length === 0) {
+      // 組織にユーザーがいない場合は空配列を返す
+      return NextResponse.json({
+        success: true,
+        results: [],
+      });
+    }
+
     // 組織内のテストセッションを取得
     let query = adminClient
       .from("quiz_sessions")
@@ -55,7 +79,7 @@ export async function GET(request: NextRequest) {
         user:users!quiz_sessions_user_id_fkey(id, display_name, email),
         manual:manuals!quiz_sessions_manual_id_fkey(id, title)
       `)
-      .eq("user.organization_id", userData.organization_id)
+      .in("user_id", orgUserIds)
       .order("completed_at", { ascending: false });
 
     // フィルタリング
