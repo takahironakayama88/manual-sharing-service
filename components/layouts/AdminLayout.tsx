@@ -58,9 +58,15 @@ export default function AdminLayout({ children, currentLocale, userName }: Admin
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-gray-900">📱 マニュアル管理システム</h1>
-              <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                管理者
+              <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2 rounded-xl border border-blue-100">
+                <img src="/logo.png" alt="Smuuuz" className="h-7 w-auto" />
+                <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Smuuuz
+                </span>
+              </div>
+              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                管理画面
               </span>
             </div>
             <div className="flex items-center gap-4">
