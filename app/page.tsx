@@ -85,12 +85,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* ロゴ・タイトル */}
         <div className="text-center mb-8">
-          <div className="inline-block p-4 bg-blue-600 rounded-2xl mb-4 shadow-lg">
-            <span className="text-5xl">📚</span>
+          <div className="inline-block mb-4">
+            <img
+              src="/logo.png"
+              alt="Smuuuz Logo"
+              className="h-24 w-auto mx-auto"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Smuuuz
-          </h1>
           <p className="text-gray-600">AI搭載マニュアル共有サービス</p>
         </div>
 

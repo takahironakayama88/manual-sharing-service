@@ -108,10 +108,12 @@ export default function SignupPage() {
       <div className="w-full max-w-2xl">
         {/* ロゴ・タイトル */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <div className="inline-block p-4 bg-purple-600 rounded-2xl mb-4 shadow-lg hover:bg-purple-700 transition-colors">
-              <span className="text-5xl">📚</span>
-            </div>
+          <Link href="/" className="inline-block mb-4">
+            <img
+              src="/logo.png"
+              alt="Smuuuz Logo"
+              className="h-20 w-auto mx-auto hover:opacity-80 transition-opacity"
+            />
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             無料でアカウントを作成
