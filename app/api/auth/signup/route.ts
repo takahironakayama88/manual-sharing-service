@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
       language: "ja",
       organization_id: orgData.id,
       is_onboarded: true,
+      is_admin: true, // 管理者権限を付与
     });
 
     if (userError) {
