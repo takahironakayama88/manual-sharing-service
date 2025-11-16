@@ -89,7 +89,7 @@ export default function LoginPage() {
             <span className="text-5xl">📚</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Manual Sharing Service
+            Smuuuz
           </h1>
           <p className="text-gray-600">AI搭載マニュアル共有サービス</p>
         </div>
@@ -123,7 +123,7 @@ export default function LoginPage() {
                   setEmail(e.target.value);
                   setError("");
                 }}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 placeholder="例: tanaka@example.com"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loading}
@@ -142,7 +142,7 @@ export default function LoginPage() {
                   setPassword(e.target.value);
                   setError("");
                 }}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 placeholder="パスワードを入力"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loading}

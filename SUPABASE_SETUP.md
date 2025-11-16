@@ -1,6 +1,6 @@
 # Supabase セットアップガイド
 
-このドキュメントでは、Manual Sharing ServiceにSupabaseを統合する手順を説明します。
+このドキュメントでは、SmuuuzにSupabaseを統合する手順を説明します。
 
 ## 📋 前提条件
 
@@ -82,7 +82,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
    Username: apikey
    Password: <Your SendGrid API Key>
    Sender email: noreply@yourdomain.com
-   Sender name: Manual Sharing Service
+   Sender name: Smuuuz
    ```
 
 ### 5. Storage設定（画像・動画用）

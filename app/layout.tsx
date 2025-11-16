@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Manual Sharing Service",
+  title: "Smuuuz",
   description: "AI搭載マニュアル共有サービス",
 };
 
