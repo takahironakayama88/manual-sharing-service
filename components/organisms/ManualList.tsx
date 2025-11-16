@@ -44,12 +44,12 @@ export default function ManualList({ manuals, locale, onDelete }: ManualListProp
       const matchesStatus = !statusFilter || manual.status === statusFilter;
 
       // 部署でフィルタリング
-      // 部署タグが空または未設定の場合は「全部署対象」として扱う
+      // フィルターが選択されている場合は、その部署タグが設定されているマニュアルのみ表示
       const matchesDepartment =
         !departmentFilter ||
-        !manual.department_tags ||
-        manual.department_tags.length === 0 ||
-        manual.department_tags.includes(departmentFilter);
+        (manual.department_tags &&
+          manual.department_tags.length > 0 &&
+          manual.department_tags.includes(departmentFilter));
 
       return matchesSearch && matchesCategory && matchesStatus && matchesDepartment;
     });
