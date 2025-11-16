@@ -88,7 +88,7 @@ export default function SignupPage() {
       }
 
       alert(
-        `組織「${organizationName}」を作成しました！\n\n${email} に確認メールを送信しました。\nメール内のリンクをクリックして、メールアドレスの確認を完了してください。\n\n確認後、ログインページからログインできます。`
+        `組織「${organizationName}」を作成しました！\n\nログインページからログインできます。`
       );
       router.push("/");
     } catch (error) {

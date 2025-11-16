@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
-      email_confirm: false, // メール確認が必要
+      email_confirm: true, // 開発環境用：メール確認を自動的に完了（本番ではfalseに変更）
       user_metadata: {
         display_name: adminName,
       },
