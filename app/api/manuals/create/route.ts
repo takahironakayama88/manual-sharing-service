@@ -74,7 +74,11 @@ export async function POST(request: NextRequest) {
     if (createError) {
       console.error("Manual creation error:", createError);
       return NextResponse.json(
-        { error: "マニュアルの作成に失敗しました" },
+        {
+          error: "マニュアルの作成に失敗しました",
+          details: createError.message,
+          code: createError.code
+        },
         { status: 500 }
       );
     }

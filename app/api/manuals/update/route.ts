@@ -90,7 +90,11 @@ export async function PUT(request: NextRequest) {
     if (updateError) {
       console.error("Manual update error:", updateError);
       return NextResponse.json(
-        { error: "マニュアルの更新に失敗しました" },
+        {
+          error: "マニュアルの更新に失敗しました",
+          details: updateError.message,
+          code: updateError.code
+        },
         { status: 500 }
       );
     }
